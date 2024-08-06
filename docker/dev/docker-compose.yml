@@ -1,0 +1,82 @@
+services:
+  # redis service
+  guru-redis:
+    image: 'redis:alpine'
+    container_name: sistema-online-guru-redis
+    ports:
+      - 6381:6379
+    volumes:
+      - sistema-online-guru-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 3
+      timeout: 5s
+    networks:
+      - sistema-online
+
+  # php-fpm service
+  guru-php-fpm:
+    container_name: sistema-online-guru-php-fpm
+    ports:
+      - 9002:9000
+    build:
+      context: ./php-fpm
+      dockerfile: Dockerfile
+    image: sistema-online-guru-php-fpm
+    volumes:
+      - ../..:/var/www/html:rw
+    depends_on:
+      - guru-redis
+    networks:
+      - sistema-online
+  
+  # nginx service
+  guru-nginx:
+    image: nginx:latest
+    container_name: sistema-online-guru-nginx
+    volumes:
+      - ../..:/var/www/html:rw
+      - ./nginx/dhparam.pem:/etc/nginx/dhparam.pem
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/sites-available/default.conf
+    ports:
+      - "8083:80"
+    depends_on:
+      - guru-php-fpm
+    networks:
+      - sistema-online
+
+  # horizon service
+  guru-horizon:
+    image: sistema-online-guru-php-fpm
+    container_name: sistema-online-guru-horizon
+    command: php artisan horizon
+    volumes:
+      - ../..:/var/www/html
+    networks:
+      - sistema-online
+    depends_on:
+      - guru-php-fpm
+      - guru-redis
+
+  # scheduler service
+  guru-scheduler:
+    image: sistema-online-guru-php-fpm
+    container_name: sistema-online-guru-scheduler
+    entrypoint: /bin/sh -c "while :; do php artisan schedule:run; sleep 60; done"
+    volumes:
+      - ../..:/var/www/html
+    networks:
+      - sistema-online
+    depends_on:
+      - guru-php-fpm
+      - guru-redis
+
+networks:
+  sistema-online:
+    driver: bridge
+    external: true
+
+volumes:
+    sistema-online-guru-redis:
+        driver: local
