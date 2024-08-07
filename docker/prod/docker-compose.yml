@@ -1,12 +1,12 @@
 services:
   # redis service
-  emailmarketing-redis:
+  email-marketing-v2-redis:
     image: 'redis:alpine'
-    container_name: sistema-online-emailmarketing-redis
+    container_name: sistema-online-email-marketing-v2-redis
     ports:
       - 6381:6379
     volumes:
-      - sistema-online-emailmarketing-redis:/data
+      - sistema-online-email-marketing-v2-redis:/data
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     environment:
@@ -28,14 +28,14 @@ services:
           memory: 2048M
 
   # php-fpm service
-  emailmarketing-php-fpm:
-    container_name: sistema-online-emailmarketing-php-fpm
+  email-marketing-v2-php-fpm:
+    container_name: sistema-online-email-marketing-v2-php-fpm
     ports:
       - 9002:9000
     build:
       context: ./php-fpm
       dockerfile: Dockerfile
-    image: sistema-online-emailmarketing-php-fpm
+    image: sistema-online-email-marketing-v2-php-fpm
     volumes:
       - ../..:/var/www/html:rw
       - /etc/localtime:/etc/localtime:ro
@@ -43,7 +43,7 @@ services:
     environment:
       - TZ=America/Sao_Paulo
     depends_on:
-      - emailmarketing-redis
+      - email-marketing-v2-redis
     networks:
       - sistema-online
     restart: always
@@ -57,9 +57,9 @@ services:
           memory: 2048M
   
   # nginx service
-  emailmarketing-nginx:
+  email-marketing-v2-nginx:
     image: nginx:latest
-    container_name: sistema-online-emailmarketing-nginx
+    container_name: sistema-online-email-marketing-v2-nginx
     volumes:
       - ../..:/var/www/html:rw
       - ./nginx/dhparam.pem:/etc/nginx/dhparam.pem
@@ -72,7 +72,7 @@ services:
     ports:
       - "8083:80"
     depends_on:
-      - emailmarketing-php-fpm
+      - email-marketing-v2-php-fpm
     networks:
       - sistema-online
     restart: always
@@ -86,9 +86,9 @@ services:
           memory: 2048M
 
   # horizon service
-  emailmarketing-horizon:
-    image: sistema-online-emailmarketing-php-fpm
-    container_name: sistema-online-emailmarketing-horizon
+  email-marketing-v2-horizon:
+    image: sistema-online-email-marketing-v2-php-fpm
+    container_name: sistema-online-email-marketing-v2-horizon
     command: php artisan horizon
     volumes:
       - ../..:/var/www/html
@@ -99,8 +99,8 @@ services:
     networks:
       - sistema-online
     depends_on:
-      - emailmarketing-php-fpm
-      - emailmarketing-redis
+      - email-marketing-v2-php-fpm
+      - email-marketing-v2-redis
     restart: always
     deploy:
       resources:
@@ -112,9 +112,9 @@ services:
           memory: 2048M
 
   # scheduler service
-  emailmarketing-scheduler:
-    image: sistema-online-emailmarketing-php-fpm
-    container_name: sistema-online-emailmarketing-scheduler
+  email-marketing-v2-scheduler:
+    image: sistema-online-email-marketing-v2-php-fpm
+    container_name: sistema-online-email-marketing-v2-scheduler
     entrypoint: /bin/sh -c "while :; do php artisan schedule:run; sleep 60; done"
     volumes:
       - ../..:/var/www/html
@@ -125,8 +125,8 @@ services:
     networks:
       - sistema-online
     depends_on:
-      - emailmarketing-php-fpm
-      - emailmarketing-redis
+      - email-marketing-v2-php-fpm
+      - email-marketing-v2-redis
     restart: always
     deploy:
       resources:
@@ -143,5 +143,5 @@ networks:
     external: true
 
 volumes:
-    sistema-online-emailmarketing-redis:
+    sistema-online-email-marketing-v2-redis:
         driver: local
