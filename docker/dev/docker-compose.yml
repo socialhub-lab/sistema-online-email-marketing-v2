@@ -1,12 +1,12 @@
 services:
   # redis service
-  guru-redis:
+  emailmarketing-redis:
     image: 'redis:alpine'
-    container_name: sistema-online-guru-redis
+    container_name: sistema-online-emailmarketing-redis
     ports:
       - 6381:6379
     volumes:
-      - sistema-online-guru-redis:/data
+      - sistema-online-emailmarketing-redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       retries: 3
@@ -15,25 +15,25 @@ services:
       - sistema-online
 
   # php-fpm service
-  guru-php-fpm:
-    container_name: sistema-online-guru-php-fpm
+  emailmarketing-php-fpm:
+    container_name: sistema-online-emailmarketing-php-fpm
     ports:
       - 9002:9000
     build:
       context: ./php-fpm
       dockerfile: Dockerfile
-    image: sistema-online-guru-php-fpm
+    image: sistema-online-emailmarketing-php-fpm
     volumes:
       - ../..:/var/www/html:rw
     depends_on:
-      - guru-redis
+      - emailmarketing-redis
     networks:
       - sistema-online
   
   # nginx service
-  guru-nginx:
+  emailmarketing-nginx:
     image: nginx:latest
-    container_name: sistema-online-guru-nginx
+    container_name: sistema-online-emailmarketing-nginx
     volumes:
       - ../..:/var/www/html:rw
       - ./nginx/dhparam.pem:/etc/nginx/dhparam.pem
@@ -42,35 +42,35 @@ services:
     ports:
       - "8083:80"
     depends_on:
-      - guru-php-fpm
+      - emailmarketing-php-fpm
     networks:
       - sistema-online
 
   # horizon service
-  guru-horizon:
-    image: sistema-online-guru-php-fpm
-    container_name: sistema-online-guru-horizon
+  emailmarketing-horizon:
+    image: sistema-online-emailmarketing-php-fpm
+    container_name: sistema-online-emailmarketing-horizon
     command: php artisan horizon
     volumes:
       - ../..:/var/www/html
     networks:
       - sistema-online
     depends_on:
-      - guru-php-fpm
-      - guru-redis
+      - emailmarketing-php-fpm
+      - emailmarketing-redis
 
   # scheduler service
-  guru-scheduler:
-    image: sistema-online-guru-php-fpm
-    container_name: sistema-online-guru-scheduler
+  emailmarketing-scheduler:
+    image: sistema-online-emailmarketing-php-fpm
+    container_name: sistema-online-emailmarketing-scheduler
     entrypoint: /bin/sh -c "while :; do php artisan schedule:run; sleep 60; done"
     volumes:
       - ../..:/var/www/html
     networks:
       - sistema-online
     depends_on:
-      - guru-php-fpm
-      - guru-redis
+      - emailmarketing-php-fpm
+      - emailmarketing-redis
 
 networks:
   sistema-online:
@@ -78,5 +78,5 @@ networks:
     external: true
 
 volumes:
-    sistema-online-guru-redis:
+    sistema-online-emailmarketing-redis:
         driver: local
