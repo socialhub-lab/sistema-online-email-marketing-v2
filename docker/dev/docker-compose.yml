@@ -4,7 +4,7 @@ services:
     image: 'redis:alpine'
     container_name: sistema-online-email-marketing-v2-redis
     ports:
-      - 6381:6379
+      - 6387:6379
     volumes:
       - sistema-online-email-marketing-v2-redis:/data
     healthcheck:
@@ -18,7 +18,7 @@ services:
   email-marketing-v2-php-fpm:
     container_name: sistema-online-email-marketing-v2-php-fpm
     ports:
-      - 9002:9000
+      - 9008:9000
     build:
       context: ./php-fpm
       dockerfile: Dockerfile
@@ -40,7 +40,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/default.conf:/etc/nginx/sites-available/default.conf
     ports:
-      - "8083:80"
+      - "8089:80"
     depends_on:
       - email-marketing-v2-php-fpm
     networks:
